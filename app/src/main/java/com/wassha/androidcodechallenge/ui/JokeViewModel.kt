@@ -1,11 +1,36 @@
 package com.wassha.androidcodechallenge.ui
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import androidx.lifecycle.*
 import com.wassha.androidcodechallenge.data.Joke
 import com.wassha.androidcodechallenge.data.JokeRepository
+import dagger.hilt.android.internal.Contexts.getApplication
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class JokeViewModel @Inject constructor(
+    private val repository: JokeRepository
+): ViewModel() {
+
+    val joke = MutableLiveData<JokeUiModel>()
+    val isLocal = MutableLiveData<Boolean>()
+
+    init {
+        joke.value = JokeUiModel.default()
+    }
+
+    fun getJoke() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getJoke(isLocal).let { joke.postValue(it?.toUiModel()) }
+        }
+    }
+}
 
 data class JokeUiModel (val joke: String) {
     companion object {
@@ -13,33 +38,5 @@ data class JokeUiModel (val joke: String) {
     }
 }
 
-fun Joke.toUiModel() = JokeUiModel(joke = value)
+fun Joke.toUiModel() = JokeUiModel(joke = joke)
 
-class JokeViewModel(
-    private val repository: JokeRepository
-): ViewModel() {
-
-    val joke = MutableLiveData<JokeUiModel>()
-
-    init {
-        joke.value = JokeUiModel.default()
-    }
-
-    fun onResume() {
-        repository.fetchJoke().let { joke.value = it.toUiModel() }
-    }
-
-}
-
-class JokeViewModelFactory(
-    private val repository: JokeRepository,
-) : ViewModelProvider.Factory {
-
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(JokeViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return JokeViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

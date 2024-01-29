@@ -22,6 +22,7 @@ fun JokeScreen(
 ) {
 
     val joke: JokeUiModel by viewModel.joke.observeAsState(JokeUiModel.default())
+    val isLocal : Boolean by viewModel.isLocal.observeAsState(false)
 
     Column(
         modifier = Modifier
@@ -45,10 +46,14 @@ fun JokeScreen(
             style = MaterialTheme.typography.bodyLarge
         )
 
-        Text(
-            text = "Length: ${joke.joke.length}",
-            style = MaterialTheme.typography.bodySmall,
-        )
+        joke.joke.length.let{
+            if(it > 80){
+                Text(
+                    text = "Length: $it",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
 
         Text(
             text = "Words: ${joke.joke.split("\\s+".toRegex())
@@ -57,14 +62,17 @@ fun JokeScreen(
             style = MaterialTheme.typography.bodySmall,
         )
 
+        val str = if(isLocal) "local" else "api"
+
         Text(
-            text = "Data was fetched from local",
+            text = "Data was fetched from $str",
             style = MaterialTheme.typography.bodySmall,
             color = Color.Red
         )
 
-        Button(onClick = { viewModel.onResume() }) {
+        Button(onClick = { viewModel.getJoke()}) {
             Text(text = "Fetch Joke")
         }
     }
 }
+

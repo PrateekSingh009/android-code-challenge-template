@@ -8,18 +8,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.wassha.androidcodechallenge.data.JokeRepository
 import com.wassha.androidcodechallenge.ui.theme.MyApplicationTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class JokeActivity : ComponentActivity() {
 
-    private val viewModel: JokeViewModel by viewModels { JokeViewModelFactory(JokeRepository()) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
+                val viewModel = hiltViewModel<JokeViewModel>()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
